@@ -1,17 +1,32 @@
 # gym_tracker
 
-A new Flutter project.
+A Flutter fitness-tracking app prototype. The current UI uses fake data for
+workouts, personal goals, and meal calorie estimates; smartwatch syncing,
+AI image analysis, and persistence are not wired up yet.
 
-## Getting Started
+## Project structure
 
-This project is a starting point for a Flutter application.
+```text
+lib/
+  main.dart                         app setup and theme
+  domain/models/                    Workout, FitnessGoal, MealEntry
+  data/                             fake data for each model
+  ui/
+    core/widgets/                   reusable widgets
+    home/                           dashboard and bottom navigation
+    workouts/                       workout list and details
+    goals/                           goal progress
+    nutrition/                       meal and calorie overview
+```
 
-A few resources to get you started if this is your first Flutter project:
+## Run
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+```sh
+flutter pub get
+flutter run
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Run widget tests with `flutter test`.
+
+See [docs/TESTING_GUIDE.md](docs/TESTING_GUIDE.md) for a manual test walkthrough
+and pointers to the app's code.
