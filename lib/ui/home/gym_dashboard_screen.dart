@@ -19,7 +19,7 @@ class _GymDashboardScreenState extends State<GymDashboardScreen> {
     NutritionScreen(),
   ];
 
-  static const _titles = ['gym_tracker', 'My goals', 'Nutrition'];
+  static const _titles = ['Gym Tracker', 'My goals', 'Nutrition'];
 
   @override
   Widget build(BuildContext context) {

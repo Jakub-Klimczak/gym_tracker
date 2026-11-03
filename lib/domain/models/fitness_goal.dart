@@ -1,3 +1,5 @@
+enum GoalTrackingMode { manual, workouts, wearable }
+
 class FitnessGoal {
   const FitnessGoal({
     required this.id,
@@ -7,6 +9,7 @@ class FitnessGoal {
     required this.targetValue,
     required this.unit,
     this.deadline,
+    this.trackingMode = GoalTrackingMode.manual,
   });
 
   final String id;
@@ -16,6 +19,27 @@ class FitnessGoal {
   final double targetValue;
   final String unit;
   final DateTime? deadline;
+  final GoalTrackingMode trackingMode;
+
+  FitnessGoal copyWith({
+    String? id,
+    String? title,
+    String? description,
+    double? currentValue,
+    double? targetValue,
+    String? unit,
+    DateTime? deadline,
+    GoalTrackingMode? trackingMode,
+  }) => FitnessGoal(
+    id: id ?? this.id,
+    title: title ?? this.title,
+    description: description ?? this.description,
+    currentValue: currentValue ?? this.currentValue,
+    targetValue: targetValue ?? this.targetValue,
+    unit: unit ?? this.unit,
+    deadline: deadline ?? this.deadline,
+    trackingMode: trackingMode ?? this.trackingMode,
+  );
 
   double get progress => targetValue <= 0
       ? 0

@@ -18,4 +18,24 @@ class Workout {
   final int? caloriesBurned;
   final String? source;
   final String? notes;
+
+  Workout copyWith({
+    String? id,
+    String? name,
+    DateTime? date,
+    int? durationMinutes,
+    List<String>? exercises,
+    int? caloriesBurned,
+    String? source,
+    String? notes,
+  }) => Workout(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    date: date ?? this.date,
+    durationMinutes: durationMinutes ?? this.durationMinutes,
+    exercises: exercises ?? this.exercises,
+    caloriesBurned: caloriesBurned ?? this.caloriesBurned,
+    source: source ?? this.source,
+    notes: notes ?? this.notes,
+  );
 }
