@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../domain/models/fitness_goal.dart';
+import '../core/data_state.dart';
+import '../core/widgets/error_view.dart';
 import 'goals_view_model.dart';
 
 class FitnessGoalFormScreen extends StatefulWidget {
-  const FitnessGoalFormScreen({super.key, this.goal});
+  const FitnessGoalFormScreen({super.key, this.goalId});
 
-  final FitnessGoal? goal;
+  final String? goalId;
 
   @override
   State<FitnessGoalFormScreen> createState() => _FitnessGoalFormScreenState();
@@ -20,28 +23,37 @@ class _FitnessGoalFormScreenState extends State<FitnessGoalFormScreen> {
   late final TextEditingController _currentController;
   late final TextEditingController _targetController;
   late final TextEditingController _unitController;
+  FitnessGoal? _goal;
+  bool _initialized = false;
   bool _saving = false;
 
-  bool get _isEditing => widget.goal != null;
+  bool get _isEditing => widget.goalId != null;
   bool get _isManual =>
-      (widget.goal?.trackingMode ?? GoalTrackingMode.manual) ==
+      (_goal?.trackingMode ?? GoalTrackingMode.manual) ==
       GoalTrackingMode.manual;
 
   @override
   void initState() {
     super.initState();
-    final goal = widget.goal;
-    _titleController = TextEditingController(text: goal?.title ?? '');
-    _descriptionController = TextEditingController(
-      text: goal?.description ?? '',
-    );
-    _currentController = TextEditingController(
-      text: goal == null ? '0' : _formatValue(goal.currentValue),
-    );
-    _targetController = TextEditingController(
-      text: goal == null ? '' : _formatValue(goal.targetValue),
-    );
-    _unitController = TextEditingController(text: goal?.unit ?? '');
+    _titleController = TextEditingController();
+    _descriptionController = TextEditingController();
+    _currentController = TextEditingController();
+    _targetController = TextEditingController();
+    _unitController = TextEditingController();
+    if (!_isEditing) _initializeForm(null);
+  }
+
+  void _initializeForm(FitnessGoal? goal) {
+    if (_initialized) return;
+    _goal = goal;
+    _titleController.text = goal?.title ?? '';
+    _descriptionController.text = goal?.description ?? '';
+    _currentController.text = goal == null
+        ? '0'
+        : _formatValue(goal.currentValue);
+    _targetController.text = goal == null ? '' : _formatValue(goal.targetValue);
+    _unitController.text = goal?.unit ?? '';
+    _initialized = true;
   }
 
   @override
@@ -71,7 +83,7 @@ class _FitnessGoalFormScreenState extends State<FitnessGoalFormScreen> {
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final previous = widget.goal;
+    final previous = _goal;
     final goal = FitnessGoal(
       id: previous?.id ?? DateTime.now().microsecondsSinceEpoch.toString(),
       title: _titleController.text.trim(),
@@ -94,7 +106,7 @@ class _FitnessGoalFormScreenState extends State<FitnessGoalFormScreen> {
     setState(() => _saving = false);
 
     if (saved) {
-      Navigator.of(context).pop();
+      context.pop();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Could not save goal. Try again.')),
@@ -103,77 +115,105 @@ class _FitnessGoalFormScreenState extends State<FitnessGoalFormScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: Text(_isEditing ? 'Edit goal' : 'Add goal')),
-    body: Form(
-      key: _formKey,
-      child: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          TextFormField(
-            controller: _titleController,
-            decoration: const InputDecoration(
-              labelText: 'Goal name',
-              border: OutlineInputBorder(),
-            ),
-            textCapitalization: TextCapitalization.sentences,
-            validator: (value) => value == null || value.trim().isEmpty
-                ? 'Enter a goal name.'
-                : null,
+  Widget build(BuildContext context) {
+    final vm = context.watch<GoalsViewModel>();
+    final state = vm.state;
+    final goal = widget.goalId == null ? null : vm.goalById(widget.goalId!);
+    if (!_initialized && (!_isEditing || goal != null)) {
+      _initializeForm(goal);
+    }
+
+    return Scaffold(
+      appBar: AppBar(title: Text(_isEditing ? 'Edit goal' : 'Add goal')),
+      body: _buildBody(vm, state, goal),
+    );
+  }
+
+  Widget _buildBody(
+    GoalsViewModel vm,
+    DataState<List<FitnessGoal>> state,
+    FitnessGoal? goal,
+  ) {
+    if (!_isEditing) return _buildForm();
+    if (state is DataLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (state case DataError(:final message)) {
+      return ErrorView(message: message, onRetry: vm.load);
+    }
+    if (goal == null) {
+      return ErrorView(message: 'Goal not found.', onRetry: vm.load);
+    }
+    return _buildForm();
+  }
+
+  Widget _buildForm() => Form(
+    key: _formKey,
+    child: ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        TextFormField(
+          controller: _titleController,
+          decoration: const InputDecoration(
+            labelText: 'Goal name',
+            border: OutlineInputBorder(),
           ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _descriptionController,
-            decoration: const InputDecoration(
-              labelText: 'Description',
-              border: OutlineInputBorder(),
-            ),
-            textCapitalization: TextCapitalization.sentences,
-            validator: (value) => value == null || value.trim().isEmpty
-                ? 'Enter a description.'
-                : null,
+          textCapitalization: TextCapitalization.sentences,
+          validator: (value) => value == null || value.trim().isEmpty
+              ? 'Enter a goal name.'
+              : null,
+        ),
+        const SizedBox(height: 16),
+        TextFormField(
+          controller: _descriptionController,
+          decoration: const InputDecoration(
+            labelText: 'Description',
+            border: OutlineInputBorder(),
           ),
-          const SizedBox(height: 16),
-          if (_isManual) ...[
-            _numberField(
-              controller: _currentController,
-              label: 'Current progress',
-              mustBePositive: false,
-            ),
-            const SizedBox(height: 16),
-          ] else ...[
-            _TrackingNotice(mode: widget.goal!.trackingMode),
-            const SizedBox(height: 16),
-          ],
+          textCapitalization: TextCapitalization.sentences,
+          validator: (value) => value == null || value.trim().isEmpty
+              ? 'Enter a description.'
+              : null,
+        ),
+        const SizedBox(height: 16),
+        if (_isManual) ...[
           _numberField(
-            controller: _targetController,
-            label: 'Target',
-            mustBePositive: true,
+            controller: _currentController,
+            label: 'Current progress',
+            mustBePositive: false,
           ),
           const SizedBox(height: 16),
-          TextFormField(
-            controller: _unitController,
-            decoration: const InputDecoration(
-              labelText: 'Unit (e.g. workouts, km, kg, L)',
-              border: OutlineInputBorder(),
-            ),
-            validator: (value) => value == null || value.trim().isEmpty
-                ? 'Enter a unit.'
-                : null,
-          ),
-          const SizedBox(height: 24),
-          FilledButton.icon(
-            onPressed: _saving ? null : _save,
-            icon: _saving
-                ? const SizedBox.square(
-                    dimension: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.save_outlined),
-            label: Text(_saving ? 'Saving' : 'Save goal'),
-          ),
+        ] else ...[
+          _TrackingNotice(mode: _goal!.trackingMode),
+          const SizedBox(height: 16),
         ],
-      ),
+        _numberField(
+          controller: _targetController,
+          label: 'Target',
+          mustBePositive: true,
+        ),
+        const SizedBox(height: 16),
+        TextFormField(
+          controller: _unitController,
+          decoration: const InputDecoration(
+            labelText: 'Unit (e.g. workouts, km, kg, L)',
+            border: OutlineInputBorder(),
+          ),
+          validator: (value) =>
+              value == null || value.trim().isEmpty ? 'Enter a unit.' : null,
+        ),
+        const SizedBox(height: 24),
+        FilledButton.icon(
+          onPressed: _saving ? null : _save,
+          icon: _saving
+              ? const SizedBox.square(
+                  dimension: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.save_outlined),
+          label: Text(_saving ? 'Saving' : 'Save goal'),
+        ),
+      ],
     ),
   );
 
@@ -203,8 +243,7 @@ class _TrackingNotice extends StatelessWidget {
     final message = switch (mode) {
       GoalTrackingMode.workouts =>
         'Current progress is calculated from workouts logged this week.',
-      GoalTrackingMode.wearable =>
-        'Current progress will come from a connected watch. Watch syncing is not connected yet.',
+      GoalTrackingMode.wearable => 'Current progress will come from a connected watch. Watch syncing is not connected yet.',
       GoalTrackingMode.manual => '',
     };
 

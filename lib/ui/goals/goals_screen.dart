@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../domain/models/fitness_goal.dart';
 import '../core/data_state.dart';
 import '../core/widgets/error_view.dart';
 import '../core/widgets/section_heading.dart';
-import 'fitness_goal_form_screen.dart';
 import 'goals_view_model.dart';
 
 class GoalsScreen extends StatelessWidget {
@@ -39,11 +39,7 @@ class GoalsScreen extends StatelessWidget {
                   ),
                   IconButton.filledTonal(
                     tooltip: 'Add goal',
-                    onPressed: () => Navigator.of(context).push<void>(
-                      MaterialPageRoute<void>(
-                        builder: (_) => const FitnessGoalFormScreen(),
-                      ),
-                    ),
+                    onPressed: () => context.go('/goals/new'),
                     icon: const Icon(Icons.add),
                   ),
                 ],
@@ -85,11 +81,7 @@ class _GoalCard extends StatelessWidget {
                 Expanded(child: Text(goal.title, style: text.titleMedium)),
                 IconButton(
                   tooltip: 'Edit ${goal.title}',
-                  onPressed: () => Navigator.of(context).push<void>(
-                    MaterialPageRoute<void>(
-                      builder: (_) => FitnessGoalFormScreen(goal: goal),
-                    ),
-                  ),
+                  onPressed: () => context.go('/goals/${goal.id}/edit'),
                   icon: const Icon(Icons.edit_outlined),
                 ),
               ],

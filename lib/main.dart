@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'router.dart';
 import 'data/repositories/fake_fitness_goal_repository.dart';
 import 'data/repositories/fake_meal_entry_repository.dart';
 import 'data/repositories/fake_workout_repository.dart';
@@ -8,7 +9,6 @@ import 'ui/goals/goals_view_model.dart';
 import 'domain/repositories/fitness_goal_repository.dart';
 import 'domain/repositories/meal_entry_repository.dart';
 import 'domain/repositories/workout_repository.dart';
-import 'ui/home/gym_dashboard_screen.dart';
 import 'ui/nutrition/nutrition_view_model.dart';
 import 'ui/workouts/workouts_view_model.dart';
 
@@ -48,7 +48,7 @@ class GymTrackerApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'Gym Tracker',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: _seed),
@@ -61,7 +61,7 @@ class GymTrackerApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const GymDashboardScreen(),
+      routerConfig: createRouter(),
     );
   }
 }

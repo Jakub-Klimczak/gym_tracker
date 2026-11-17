@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../domain/models/workout.dart';
@@ -6,8 +7,6 @@ import '../core/data_state.dart';
 import '../core/widgets/error_view.dart';
 import '../core/widgets/feature_chip.dart';
 import '../core/widgets/section_heading.dart';
-import 'workout_details_screen.dart';
-import 'workout_form_screen.dart';
 import 'workouts_view_model.dart';
 
 class WorkoutsScreen extends StatelessWidget {
@@ -48,11 +47,7 @@ class WorkoutsScreen extends StatelessWidget {
                       ),
                       IconButton.filledTonal(
                         tooltip: 'Add workout',
-                        onPressed: () => Navigator.of(context).push<void>(
-                          MaterialPageRoute<void>(
-                            builder: (_) => const WorkoutFormScreen(),
-                          ),
-                        ),
+                        onPressed: () => context.go('/workouts/new'),
                         icon: const Icon(Icons.add),
                       ),
                     ],
@@ -98,11 +93,7 @@ class WorkoutsScreen extends StatelessWidget {
           const Text('No workouts yet.'),
           const SizedBox(height: 12),
           FilledButton.icon(
-            onPressed: () => Navigator.of(context).push<void>(
-              MaterialPageRoute<void>(
-                builder: (_) => const WorkoutFormScreen(),
-              ),
-            ),
+            onPressed: () => context.go('/workouts/new'),
             icon: const Icon(Icons.add),
             label: const Text('Add workout'),
           ),
@@ -204,11 +195,7 @@ class _WorkoutCard extends StatelessWidget {
               '${_formatDate(workout.date)} · ${workout.durationMinutes} min',
             ),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => Navigator.of(context).push<void>(
-              MaterialPageRoute<void>(
-                builder: (_) => WorkoutDetailsScreen(workoutId: workout.id),
-              ),
-            ),
+            onTap: () => context.go('/workouts/${workout.id}'),
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
