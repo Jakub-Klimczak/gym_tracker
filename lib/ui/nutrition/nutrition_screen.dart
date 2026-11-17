@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../domain/models/meal_entry.dart';
 import '../core/data_state.dart';
 import '../core/widgets/error_view.dart';
 import '../core/widgets/section_heading.dart';
-import 'meal_entry_form_screen.dart';
 import 'nutrition_view_model.dart';
 
 class NutritionScreen extends StatelessWidget {
@@ -33,17 +33,12 @@ class NutritionScreen extends StatelessWidget {
                   const Expanded(
                     child: SectionHeading(
                       title: 'Food & calories',
-                      subtitle:
-                          'Meal estimates from your food photos and manual entries.',
+                      subtitle: 'Meal estimates from your food photos and manual entries.',
                     ),
                   ),
                   IconButton.filledTonal(
                     tooltip: 'Add meal',
-                    onPressed: () => Navigator.of(context).push<void>(
-                      MaterialPageRoute<void>(
-                        builder: (_) => const MealEntryFormScreen(),
-                      ),
-                    ),
+                    onPressed: () => context.go('/nutrition/new'),
                     icon: const Icon(Icons.add),
                   ),
                 ],
@@ -209,9 +204,8 @@ class _ComingSoonLabel extends StatelessWidget {
     ),
     child: Text(
       'Coming soon',
-      style: Theme.of(
-        context,
-      ).textTheme.labelSmall?.copyWith(color: foregroundColor),
+      style: Theme.of(context).textTheme.labelSmall
+          ?.copyWith(color: foregroundColor),
     ),
   );
 }
@@ -273,11 +267,7 @@ class _MealCard extends StatelessWidget {
             constraints: const BoxConstraints.tightFor(width: 40, height: 40),
             padding: EdgeInsets.zero,
             tooltip: 'Edit ${meal.name}',
-            onPressed: () => Navigator.of(context).push<void>(
-              MaterialPageRoute<void>(
-                builder: (_) => MealEntryFormScreen(meal: meal),
-              ),
-            ),
+            onPressed: () => context.go('/nutrition/${meal.id}/edit'),
             icon: const Icon(Icons.edit_outlined),
           ),
         ),

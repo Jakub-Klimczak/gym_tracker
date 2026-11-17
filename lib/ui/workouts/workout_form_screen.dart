@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../domain/models/workout.dart';
@@ -54,7 +55,7 @@ class _WorkoutFormScreenState extends State<WorkoutFormScreen> {
     setState(() => _saving = false);
 
     if (saved) {
-      Navigator.of(context).pop();
+      context.pop();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Could not save workout. Try again.')),

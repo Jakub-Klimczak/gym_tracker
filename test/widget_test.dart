@@ -7,16 +7,20 @@ import 'package:gym_tracker/domain/repositories/fitness_goal_repository.dart';
 import 'package:gym_tracker/domain/repositories/meal_entry_repository.dart';
 import 'package:gym_tracker/domain/repositories/workout_repository.dart';
 import 'package:gym_tracker/ui/goals/goals_view_model.dart';
-import 'package:gym_tracker/ui/home/gym_dashboard_screen.dart';
 import 'package:gym_tracker/ui/nutrition/nutrition_view_model.dart';
 import 'package:gym_tracker/ui/workouts/workouts_view_model.dart';
+import 'package:gym_tracker/router.dart';
 import 'package:provider/provider.dart';
 
 void main() {
-  testWidgets('shows loaded workouts', (tester) async {
+  testWidgets('shows dashboard summary and loaded workouts', (tester) async {
     await tester.pumpWidget(_testApp(failureRate: 0));
     await tester.pumpAndSettle();
 
+    expect(find.text('Your fitness at a glance'), findsOneWidget);
+    expect(find.text('Workouts this week'), findsOneWidget);
+
+    await _selectDestination(tester, 'Workouts');
     expect(find.text('Upper body strength'), findsOneWidget);
   });
 
@@ -26,6 +30,7 @@ void main() {
     await tester.pumpWidget(_testApp(failureRate: 1));
     await tester.pumpAndSettle();
 
+    await _selectDestination(tester, 'Workouts');
     expect(find.text('Could not load workouts.'), findsOneWidget);
     expect(find.text('Try again'), findsOneWidget);
   });
@@ -36,16 +41,10 @@ void main() {
     await tester.pumpWidget(_testApp(failureRate: 0));
     await tester.pumpAndSettle();
 
+    await _selectDestination(tester, 'Workouts');
     expect(find.text('Connect a wearable'), findsOneWidget);
 
-    await tester.tap(
-      find.descendant(
-        of: find.byType(NavigationBar),
-        matching: find.text('Nutrition'),
-      ),
-    );
-    await tester.pumpAndSettle();
-
+    await _selectDestination(tester, 'Nutrition');
     expect(find.text('Estimate a meal from a photo'), findsOneWidget);
     expect(find.text('Take photo'), findsOneWidget);
     expect(find.text('Choose photo'), findsOneWidget);
@@ -56,13 +55,7 @@ void main() {
   testWidgets('adds and edits a meal with nutrition values', (tester) async {
     await tester.pumpWidget(_testApp(failureRate: 0));
     await tester.pumpAndSettle();
-    await tester.tap(
-      find.descendant(
-        of: find.byType(NavigationBar),
-        matching: find.text('Nutrition'),
-      ),
-    );
-    await tester.pumpAndSettle();
+    await _selectDestination(tester, 'Nutrition');
 
     await tester.tap(find.byTooltip('Add meal'));
     await tester.pumpAndSettle();
@@ -76,21 +69,24 @@ void main() {
     await tester.tap(find.text('Save meal'));
     await tester.pumpAndSettle();
 
-    await tester.tap(
-      find.descendant(
-        of: find.byType(NavigationBar),
-        matching: find.text('Nutrition'),
-      ),
+    await tester.scrollUntilVisible(
+      find.byTooltip('Edit Yogurt bowl'),
+      300,
+      scrollable: find.byType(Scrollable).last,
     );
+    await tester.tap(find.byTooltip('Edit Yogurt bowl'));
     await tester.pumpAndSettle();
-    expect(find.text('Yogurt bowl', skipOffstage: false), findsOneWidget);
+    await tester.enterText(find.byType(TextFormField).at(0), 'Greek yogurt');
+    await tester.ensureVisible(find.text('Save meal'));
+    await tester.tap(find.text('Save meal'));
+    await tester.pumpAndSettle();
+    expect(find.text('Greek yogurt'), findsOneWidget);
   });
 
   testWidgets('adds and edits a manual fitness goal', (tester) async {
     await tester.pumpWidget(_testApp(failureRate: 0));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Goals').last);
-    await tester.pumpAndSettle();
+    await _selectDestination(tester, 'Goals');
 
     await tester.tap(find.byTooltip('Add goal'));
     await tester.pumpAndSettle();
@@ -118,6 +114,14 @@ void main() {
 
     expect(find.text('1.5 / 2 L'), findsOneWidget);
   });
+}
+
+Future<void> _selectDestination(WidgetTester tester, String label) async {
+  final navigation = find.byType(NavigationRail).evaluate().isNotEmpty
+      ? find.byType(NavigationRail)
+      : find.byType(NavigationBar);
+  await tester.tap(find.descendant(of: navigation, matching: find.text(label)));
+  await tester.pumpAndSettle();
 }
 
 Widget _testApp({required double failureRate}) {
@@ -154,6 +158,6 @@ Widget _testApp({required double failureRate}) {
             NutritionViewModel(context.read<MealEntryRepository>())..load(),
       ),
     ],
-    child: MaterialApp(home: const GymDashboardScreen()),
+    child: MaterialApp.router(routerConfig: createRouter()),
   );
 }

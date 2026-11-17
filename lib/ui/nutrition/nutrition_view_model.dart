@@ -13,6 +13,15 @@ class NutritionViewModel extends ChangeNotifier {
 
   DataState<List<MealEntry>> get state => _state;
 
+  MealEntry? mealById(String id) {
+    final state = _state;
+    if (state is! DataLoaded<List<MealEntry>>) return null;
+    for (final meal in state.value) {
+      if (meal.id == id) return meal;
+    }
+    return null;
+  }
+
   Future<bool> saveMeal(MealEntry meal, {required bool isEditing}) async {
     try {
       if (isEditing) {

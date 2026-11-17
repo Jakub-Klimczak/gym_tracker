@@ -19,6 +19,15 @@ class GoalsViewModel extends ChangeNotifier {
 
   DataState<List<FitnessGoal>> get state => _state;
 
+  FitnessGoal? goalById(String id) {
+    final state = _state;
+    if (state is! DataLoaded<List<FitnessGoal>>) return null;
+    for (final goal in state.value) {
+      if (goal.id == id) return goal;
+    }
+    return null;
+  }
+
   Future<bool> saveGoal(FitnessGoal goal, {required bool isEditing}) async {
     try {
       if (isEditing) {
